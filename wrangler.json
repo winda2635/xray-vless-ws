@@ -1,5 +1,5 @@
 {
-  "name": "xray-vless-worker",
+  "name": "xray-vless-backend",
   "main": "./Dockerfile",
   "compatibility_date": "2024-04-03"
 }
