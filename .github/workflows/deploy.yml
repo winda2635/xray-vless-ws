@@ -1,32 +1,33 @@
-name: Deploy to Cloudflare Containers
+name: Build and Push Multi-Arch WebSockets Docker Image
 
 on:
   push:
     branches:
-      - main  # تأكد أن هذا هو اسم فرعك الرئيسي في المستودع
+      - main
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. تهيئة بيئة Node.js لضمان عمل npx بدون مشاكل
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      # 2. تجهيز محرك Docker لبناء الـ Dockerfile الخاص بمشروعك
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. تشغيل Wrangler مع تمرير أمر النشر الصريح للحاويات
-      - name: Deploy via Wrangler
-        uses: cloudflare/wrangler-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # هذا السطر يضمن تشغيل npx wrangler deploy لبناء الحاوية
-          command: deploy
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Multi-Platform Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: winda2635/xray-vless-ws:latest
