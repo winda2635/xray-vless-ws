@@ -1,9 +1,9 @@
-name: Deploy to Cloudflare Workers (Docker)
+name: Deploy to Cloudflare Containers
 
 on:
   push:
     branches:
-      - main  # أو اسم الفرع الرئيسي لمستودعك (master مثلاً)
+      - main  # تأكد أن هذا هو اسم فرعك الرئيسي في المستودع
 
 jobs:
   deploy:
@@ -12,10 +12,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Deploy via Wrangler Action
+      # 1. تهيئة بيئة Node.js لضمان عمل npx بدون مشاكل
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 2. تجهيز محرك Docker لبناء الـ Dockerfile الخاص بمشروعك
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. تشغيل Wrangler مع تمرير أمر النشر الصريح للحاويات
+      - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # هذا الأمر يخبر Wrangler ببناء الحاوية عبر Dockerfile المرفق ونشرها
-          command: deploy --experimental-containers
+          # هذا السطر يضمن تشغيل npx wrangler deploy لبناء الحاوية
+          command: deploy
